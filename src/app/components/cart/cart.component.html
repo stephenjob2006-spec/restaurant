@@ -1,0 +1,184 @@
+<div class="cart-container">
+  <div class="page-header">
+    <h1>
+      <mat-icon>shopping_cart</mat-icon>
+      Your Cart
+    </h1>
+    <button mat-stroked-button (click)="continueShopping()">
+      <mat-icon>arrow_back</mat-icon>
+      Continue Shopping
+    </button>
+  </div>
+
+  <!-- Empty Cart Message using *ngIf -->
+  <div 
+    *ngIf="cartItems$ | async as cartItems"
+    class="cart-content">
+    
+    <div *ngIf="cartItems.length === 0" class="empty-cart">
+      <mat-icon>shopping_cart</mat-icon>
+      <h2>Your cart is empty</h2>
+      <p>Add some delicious items from our menu!</p>
+      <button mat-raised-button color="primary" (click)="continueShopping()">
+        <mat-icon>restaurant_menu</mat-icon>
+        Browse Menu
+      </button>
+    </div>
+
+    <!-- Cart Items using *ngFor -->
+    <div *ngIf="cartItems.length > 0" class="cart-grid">
+      <!-- Cart Items List -->
+      <div class="cart-items">
+        <div class="cart-header">
+          <h2>Items ({{ cartItemsCount$ | async }})</h2>
+          <button mat-stroked-button color="warn" (click)="clearCart()">
+            <mat-icon>delete_outline</mat-icon>
+            Clear Cart
+          </button>
+        </div>
+
+        <!-- Cart Item Card using *ngFor and data binding -->
+        <mat-card *ngFor="let item of cartItems" class="cart-item-card">
+          <div class="item-content">
+            <!-- Item Image -->
+            <img 
+              [src]="item.menuItem.imageUrl" 
+              [alt]="item.menuItem.name"
+              class="item-image">
+
+            <!-- Item Details -->
+            <div class="item-details">
+              <h3>{{ item.menuItem.name }}</h3>
+              <p class="item-description">{{ item.menuItem.description }}</p>
+
+              <!-- Tags using *ngIf directive -->
+              <div class="item-tags">
+                <span *ngIf="item.menuItem.isVegetarian" class="tag vegetarian">
+                  <mat-icon>eco</mat-icon>
+                  Vegetarian
+                </span>
+                <span *ngIf="item.menuItem.isSpicy" class="tag spicy">
+                  <mat-icon>local_fire_department</mat-icon>
+                  Spicy
+                </span>
+              </div>
+
+              <!-- Special Instructions using *ngIf -->
+              <div *ngIf="item.specialInstructions" class="special-instructions">
+                <mat-icon>note</mat-icon>
+                <span>{{ item.specialInstructions }}</span>
+              </div>
+            </div>
+
+            <!-- Item Controls -->
+            <div class="item-controls">
+              <div class="price-section">
+                <span class="unit-price">${{ item.menuItem.price | number:'1.2-2' }} each</span>
+                <span class="subtotal" [ngStyle]="{'font-size': '24px', 'font-weight': 'bold'}">
+                  ${{ getItemSubtotal(item) | number:'1.2-2' }}
+                </span>
+              </div>
+
+              <!-- Quantity Controls using event binding -->
+              <div class="quantity-controls">
+                <button 
+                  mat-icon-button 
+                  (click)="decreaseQuantity(item)"
+                  [disabled]="item.quantity <= 1">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="quantity">{{ item.quantity }}</span>
+                <button 
+                  mat-icon-button 
+                  (click)="increaseQuantity(item)"
+                  [disabled]="item.quantity >= 99">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+
+              <button 
+                mat-icon-button 
+                color="warn"
+                (click)="removeItem(item)"
+                matTooltip="Remove from cart">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Order Summary with dynamic styling using [ngClass] -->
+      <div class="order-summary" *ngIf="cartTotal$ | async as cartTotal">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Order Summary</mat-card-title>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>${{ cartTotal | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="summary-row">
+              <span>Tax (8%)</span>
+              <span>${{ calculateTax(cartTotal) | number:'1.2-2' }}</span>
+            </div>
+
+            <div 
+              class="summary-row delivery"
+              [ngClass]="{'free-delivery': getDeliveryFee(cartTotal) === 0}">
+              <span>
+                Delivery Fee
+                <span *ngIf="cartTotal < 50" class="small-text">
+                  (Free on orders $50+)
+                </span>
+              </span>
+              <span [ngStyle]="{'color': getDeliveryFee(cartTotal) === 0 ? '#4caf50' : 'inherit'}">
+                {{ getDeliveryFee(cartTotal) === 0 ? 'FREE' : ('$' + (getDeliveryFee(cartTotal) | number:'1.2-2')) }}
+              </span>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="summary-row total">
+              <strong>Total</strong>
+              <strong>${{ getGrandTotal(cartTotal) | number:'1.2-2' }}</strong>
+            </div>
+
+            <!-- Progress indicator for free delivery -->
+            <div *ngIf="cartTotal < 50" class="delivery-progress">
+              <p class="progress-text">
+                Add ${{ (50 - cartTotal) | number:'1.2-2' }} more for free delivery!
+              </p>
+              <div class="progress-bar">
+                <div 
+                  class="progress-fill"
+                  [ngStyle]="{'width': (cartTotal / 50 * 100) + '%'}">
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button 
+              mat-raised-button 
+              color="accent"
+              class="checkout-btn"
+              (click)="proceedToCheckout()">
+              <mat-icon>payment</mat-icon>
+              Proceed to Checkout
+            </button>
+          </mat-card-actions>
+
+          <!-- Security Info -->
+          <div class="security-info">
+            <mat-icon>lock</mat-icon>
+            <span>Secure Checkout</span>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

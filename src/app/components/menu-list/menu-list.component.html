@@ -1,0 +1,162 @@
+<div class="menu-list-container">
+  <div class="page-header">
+    <h1>Our Menu</h1>
+    <p class="subtitle">Explore our delicious selection of dishes</p>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <!-- Category Filter using *ngFor -->
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onCategoryChange(selectedCategoryId)">
+          <mat-option [value]="null">All Categories</mat-option>
+          <mat-option *ngFor="let category of categories$ | async" [value]="category.id">
+            {{ category.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Search Input with event binding -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search menu</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input 
+          matInput 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+          placeholder="Search dishes, ingredients...">
+      </mat-form-field>
+
+      <!-- Price Filter -->
+      <mat-form-field appearance="outline">
+        <mat-label>Max Price</mat-label>
+        <mat-icon matPrefix>attach_money</mat-icon>
+        <input 
+          matInput 
+          type="number"
+          [(ngModel)]="maxPrice"
+          (input)="onFilterChange()"
+          placeholder="Max price">
+      </mat-form-field>
+    </div>
+
+    <div class="filters-row checkboxes">
+      <!-- Vegetarian Filter using two-way binding -->
+      <mat-checkbox 
+        [(ngModel)]="isVegetarianOnly"
+        (change)="onFilterChange()"
+        color="primary">
+        Vegetarian Only
+      </mat-checkbox>
+
+      <!-- Spicy Filter -->
+      <mat-checkbox 
+        [(ngModel)]="isSpicyOnly"
+        (change)="onFilterChange()"
+        color="warn">
+        Spicy Only
+      </mat-checkbox>
+
+      <button mat-stroked-button (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Menu Items Grid using *ngFor and *ngIf directives -->
+  <div class="menu-grid" *ngIf="filteredMenuItems$ | async as menuItems">
+    <!-- Show message when no items found -->
+    <div class="no-items" *ngIf="menuItems.length === 0">
+      <mat-icon>restaurant_menu</mat-icon>
+      <p>No menu items found matching your criteria</p>
+      <button mat-raised-button color="primary" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+
+    <!-- Menu Item Cards -->
+    <mat-card 
+      *ngFor="let item of menuItems"
+      class="menu-card"
+      [ngClass]="{
+        'vegetarian': item.isVegetarian,
+        'spicy': item.isSpicy,
+        'unavailable': !item.isAvailable
+      }">
+      
+      <img 
+        mat-card-image 
+        [src]="item.imageUrl" 
+        [alt]="item.name"
+        (click)="viewDetails(item)"
+        class="menu-image">
+
+      <mat-card-header>
+        <mat-card-title>{{ item.name }}</mat-card-title>
+        <mat-card-subtitle>
+          <span class="price" [ngStyle]="{'color': item.price > 20 ? '#e91e63' : '#4caf50'}">
+            ${{ item.price | number:'1.2-2' }}
+          </span>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="description">{{ item.description }}</p>
+        
+        <!-- Chips for tags using *ngIf -->
+        <div class="tags">
+          <mat-chip *ngIf="item.isVegetarian" class="chip-vegetarian">
+            <mat-icon>eco</mat-icon>
+            Vegetarian
+          </mat-chip>
+          <mat-chip *ngIf="item.isSpicy" class="chip-spicy">
+            <mat-icon>local_fire_department</mat-icon>
+            Spicy
+          </mat-chip>
+          <mat-chip class="chip-time">
+            <mat-icon>schedule</mat-icon>
+            {{ item.preparationTime }} min
+          </mat-chip>
+        </div>
+
+        <!-- Calories info with conditional styling using [ngStyle] -->
+        <div 
+          class="calories" 
+          *ngIf="item.calories"
+          [ngStyle]="{
+            'color': item.calories > 500 ? '#f44336' : '#666',
+            'font-weight': item.calories > 500 ? 'bold' : 'normal'
+          }">
+          <mat-icon>local_dining</mat-icon>
+          {{ item.calories }} cal
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button 
+          mat-button 
+          color="primary"
+          (click)="viewDetails(item)">
+          <mat-icon>info</mat-icon>
+          Details
+        </button>
+        <button 
+          mat-raised-button 
+          color="accent"
+          [disabled]="!item.isAvailable"
+          (click)="addToCart(item)">
+          <mat-icon>add_shopping_cart</mat-icon>
+          Add to Cart
+        </button>
+      </mat-card-actions>
+
+      <!-- Unavailable overlay using *ngIf -->
+      <div class="unavailable-overlay" *ngIf="!item.isAvailable">
+        <span>Currently Unavailable</span>
+      </div>
+    </mat-card>
+  </div>
+</div>

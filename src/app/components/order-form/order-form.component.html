@@ -1,0 +1,232 @@
+<div class="order-form-container">
+  <div class="page-header">
+    <h1>
+      <mat-icon>payment</mat-icon>
+      Checkout
+    </h1>
+    <button mat-stroked-button (click)="goBackToCart()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Cart
+    </button>
+  </div>
+
+  <div class="checkout-grid">
+    <!-- Order Form using Reactive Forms -->
+    <div class="form-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Delivery Information</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form [formGroup]="orderForm" (ngSubmit)="onSubmit()">
+            <!-- Customer Name with validation -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Full Name</mat-label>
+              <mat-icon matPrefix>person</mat-icon>
+              <input 
+                matInput 
+                formControlName="customerName"
+                placeholder="Enter your full name">
+              <mat-error *ngIf="hasError('customerName', 'required')">
+                Name is required
+              </mat-error>
+              <mat-error *ngIf="hasError('customerName', 'minlength')">
+                Name must be at least 2 characters
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Email with validation -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <mat-icon matPrefix>email</mat-icon>
+              <input 
+                matInput 
+                type="email"
+                formControlName="customerEmail"
+                placeholder="your.email@example.com">
+              <mat-error *ngIf="hasError('customerEmail', 'required')">
+                Email is required
+              </mat-error>
+              <mat-error *ngIf="hasError('customerEmail', 'email')">
+                Please enter a valid email address
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Phone with pattern validation -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Phone Number</mat-label>
+              <mat-icon matPrefix>phone</mat-icon>
+              <input 
+                matInput 
+                formControlName="customerPhone"
+                placeholder="+1 (555) 123-4567">
+              <mat-error *ngIf="hasError('customerPhone', 'required')">
+                Phone number is required
+              </mat-error>
+              <mat-error *ngIf="hasError('customerPhone', 'pattern')">
+                Please enter a valid phone number
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Delivery Address -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Delivery Address</mat-label>
+              <mat-icon matPrefix>location_on</mat-icon>
+              <textarea 
+                matInput 
+                formControlName="deliveryAddress"
+                placeholder="Street address, apt/suite, city, state, ZIP"
+                rows="3"></textarea>
+              <mat-error *ngIf="hasError('deliveryAddress', 'required')">
+                Delivery address is required
+              </mat-error>
+              <mat-error *ngIf="hasError('deliveryAddress', 'minlength')">
+                Please provide a complete address
+              </mat-error>
+            </mat-form-field>
+
+            <mat-divider></mat-divider>
+
+            <!-- Payment Method using Radio Buttons -->
+            <div class="payment-section">
+              <h3>
+                <mat-icon>credit_card</mat-icon>
+                Payment Method
+              </h3>
+              <mat-radio-group formControlName="paymentMethod" class="payment-options">
+                <mat-radio-button [value]="PaymentMethod.Card" class="payment-option">
+                  <div class="payment-option-content">
+                    <mat-icon>credit_card</mat-icon>
+                    <div>
+                      <strong>Credit/Debit Card</strong>
+                      <p>Pay securely with your card</p>
+                    </div>
+                  </div>
+                </mat-radio-button>
+
+                <mat-radio-button [value]="PaymentMethod.OnlinePayment" class="payment-option">
+                  <div class="payment-option-content">
+                    <mat-icon>account_balance_wallet</mat-icon>
+                    <div>
+                      <strong>Online Payment</strong>
+                      <p>PayPal, Apple Pay, Google Pay</p>
+                    </div>
+                  </div>
+                </mat-radio-button>
+
+                <mat-radio-button [value]="PaymentMethod.Cash" class="payment-option">
+                  <div class="payment-option-content">
+                    <mat-icon>payments</mat-icon>
+                    <div>
+                      <strong>Cash on Delivery</strong>
+                      <p>Pay with cash when you receive</p>
+                    </div>
+                  </div>
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Special Requests -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Special Requests (Optional)</mat-label>
+              <mat-icon matPrefix>note</mat-icon>
+              <textarea 
+                matInput 
+                formControlName="specialRequests"
+                placeholder="Any special instructions for your order?"
+                rows="3"></textarea>
+            </mat-form-field>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="summary-section" *ngIf="cartItems$ | async as cartItems">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Order Summary</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Order Items using *ngFor -->
+          <div class="order-items">
+            <h3>Items ({{ cartItems.length }})</h3>
+            <div *ngFor="let item of cartItems" class="summary-item">
+              <div class="item-info">
+                <img [src]="item.menuItem.imageUrl" [alt]="item.menuItem.name">
+                <div class="item-text">
+                  <strong>{{ item.menuItem.name }}</strong>
+                  <span class="quantity">Qty: {{ item.quantity }}</span>
+                </div>
+              </div>
+              <span class="item-price">
+                ${{ (item.menuItem.price * item.quantity) | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Price Breakdown -->
+          <div *ngIf="cartTotal$ | async as cartTotal" class="price-breakdown">
+            <div class="price-row">
+              <span>Subtotal</span>
+              <span>${{ cartTotal | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="price-row">
+              <span>Tax (8%)</span>
+              <span>${{ calculateTax(cartTotal) | number:'1.2-2' }}</span>
+            </div>
+
+            <div 
+              class="price-row delivery"
+              [ngClass]="{'free': getDeliveryFee(cartTotal) === 0}">
+              <span>Delivery Fee</span>
+              <span [ngStyle]="{'color': getDeliveryFee(cartTotal) === 0 ? '#4caf50' : 'inherit'}">
+                {{ getDeliveryFee(cartTotal) === 0 ? 'FREE' : ('$' + (getDeliveryFee(cartTotal) | number:'1.2-2')) }}
+              </span>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="price-row total">
+              <strong>Total</strong>
+              <strong>${{ getGrandTotal(cartTotal) | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <!-- Submit Button with loading state -->
+          <button 
+            mat-raised-button 
+            color="accent"
+            class="place-order-btn"
+            (click)="onSubmit()"
+            [disabled]="isSubmitting">
+            <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+            <mat-icon *ngIf="!isSubmitting">check_circle</mat-icon>
+            {{ isSubmitting ? 'Processing...' : 'Place Order' }}
+          </button>
+
+          <!-- Form Validation Summary using *ngIf -->
+          <div *ngIf="orderForm.invalid && orderForm.touched" class="form-error">
+            <mat-icon>error</mat-icon>
+            <span>Please complete all required fields</span>
+          </div>
+        </mat-card-actions>
+
+        <!-- Security Badge -->
+        <div class="security-badge">
+          <mat-icon>verified_user</mat-icon>
+          <span>Your information is secure and encrypted</span>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</div>

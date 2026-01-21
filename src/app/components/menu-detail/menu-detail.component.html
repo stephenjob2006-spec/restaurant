@@ -1,0 +1,152 @@
+<div class="menu-detail-container" *ngIf="menuItem$ | async as menuItem; else loading">
+  <button mat-stroked-button class="back-button" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+    Back to Menu
+  </button>
+
+  <!-- Item not found -->
+  <div *ngIf="!menuItem" class="not-found">
+    <mat-icon>restaurant_menu</mat-icon>
+    <h2>Menu item not found</h2>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      Return to Menu
+    </button>
+  </div>
+
+  <!-- Menu Item Details -->
+  <mat-card *ngIf="menuItem" class="detail-card" [ngClass]="{'unavailable': !menuItem.isAvailable}">
+    <div class="card-content">
+      <!-- Image Section -->
+      <div class="image-section">
+        <img [src]="menuItem.imageUrl" [alt]="menuItem.name" class="detail-image">
+        
+        <!-- Status Badge using *ngIf -->
+        <div class="status-badge" *ngIf="!menuItem.isAvailable">
+          <mat-icon>block</mat-icon>
+          Unavailable
+        </div>
+      </div>
+
+      <!-- Details Section -->
+      <div class="details-section">
+        <mat-card-header>
+          <mat-card-title>{{ menuItem.name }}</mat-card-title>
+          <mat-card-subtitle>
+            <span class="price" [ngStyle]="{'font-size': '28px', 'font-weight': 'bold'}">
+              ${{ menuItem.price | number:'1.2-2' }}
+            </span>
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Tags using *ngIf directive -->
+          <div class="tags">
+            <mat-chip *ngIf="menuItem.isVegetarian" class="chip-vegetarian">
+              <mat-icon>eco</mat-icon>
+              Vegetarian
+            </mat-chip>
+            <mat-chip *ngIf="menuItem.isSpicy" class="chip-spicy">
+              <mat-icon>local_fire_department</mat-icon>
+              Spicy
+            </mat-chip>
+            <mat-chip class="chip-time">
+              <mat-icon>schedule</mat-icon>
+              {{ menuItem.preparationTime }} min
+            </mat-chip>
+            <mat-chip *ngIf="menuItem.calories" class="chip-calories">
+              <mat-icon>local_dining</mat-icon>
+              {{ menuItem.calories }} cal
+            </mat-chip>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Description -->
+          <div class="description-section">
+            <h3>Description</h3>
+            <p>{{ menuItem.description }}</p>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Ingredients using *ngFor -->
+          <div class="ingredients-section">
+            <h3>
+              <mat-icon>restaurant</mat-icon>
+              Ingredients
+            </h3>
+            <div class="ingredients-list">
+              <mat-chip *ngFor="let ingredient of menuItem.ingredients" class="ingredient-chip">
+                {{ ingredient }}
+              </mat-chip>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Quantity Selector using event binding -->
+          <div class="quantity-section">
+            <h3>Quantity</h3>
+            <div class="quantity-controls">
+              <button 
+                mat-icon-button 
+                (click)="decreaseQuantity()"
+                [disabled]="quantity <= 1">
+                <mat-icon>remove</mat-icon>
+              </button>
+              <span class="quantity-display">{{ quantity }}</span>
+              <button 
+                mat-icon-button 
+                (click)="increaseQuantity()"
+                [disabled]="quantity >= 99">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Special Instructions using two-way binding -->
+          <div class="instructions-section">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Special Instructions</mat-label>
+              <textarea 
+                matInput 
+                [(ngModel)]="specialInstructions"
+                placeholder="Any dietary restrictions, allergies, or preferences?"
+                rows="3"></textarea>
+              <mat-hint>Optional: Add any special requests</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- Total Price with dynamic styling using [ngClass] -->
+          <div class="total-section" [ngClass]="{'large-order': quantity > 5}">
+            <h3>Total Price</h3>
+            <div class="total-price">
+              <span>{{ quantity }}x ${{ menuItem.price | number:'1.2-2' }}</span>
+              <strong>${{ getTotalPrice(menuItem.price) | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button 
+            mat-raised-button 
+            color="accent"
+            class="add-to-cart-btn"
+            [disabled]="!menuItem.isAvailable"
+            (click)="addToCart(menuItem)">
+            <mat-icon>add_shopping_cart</mat-icon>
+            Add to Cart
+          </button>
+        </mat-card-actions>
+      </div>
+    </div>
+  </mat-card>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loading>
+  <div class="loading-container">
+    <mat-icon class="loading-icon">restaurant_menu</mat-icon>
+    <p>Loading menu item...</p>
+  </div>
+</ng-template>
