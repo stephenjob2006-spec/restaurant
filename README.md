@@ -12,7 +12,7 @@ A modern, feature-rich restaurant ordering system built with Angular 17, TypeScr
 - 💳 **Multiple Payment Options**: Support for card, online payment, and cash
 
 ### Preview
-[Click Here]("https://restaurant-beta-wheat.vercel.app/menu")
+[Click Here](https://restaurant-beta-wheat.vercel.app/menu)
 
 ### Technical Highlights
 - **TypeScript**: Strongly-typed models with classes, interfaces, and enums
